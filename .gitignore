@@ -1,2 +1,8 @@
 node_modules
 npm-debug.log
+
+#we want to keep project formatting settings
+.idea/*
+!.idea/codeStyleSettings.xml
+
+*.iml
