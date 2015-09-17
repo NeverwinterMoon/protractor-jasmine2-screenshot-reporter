@@ -4,7 +4,8 @@ var fs     = require('fs'),
     mkdirp = require('mkdirp'),
     _      = require('lodash'),
     path   = require('path'),
-    hat    = require('hat');
+    hat    = require('hat'),
+    rimraf = require('rimraf');
 
 require('string.prototype.startswith');
 
@@ -113,7 +114,7 @@ function Jasmine2ScreenShotReporter(opts) {
     };
 
     var pathBuilder = function(spec, suites, capabilities) {
-      return hat();
+      return _.chain(suites).values().first().value().fullName + '/' + hat();
     };
 
     var metadataBuilder = function(spec, suites, capabilities) {
@@ -173,24 +174,23 @@ function Jasmine2ScreenShotReporter(opts) {
 
     this.jasmineStarted = function() {
         mkdirp(opts.dest, function(err) {
-            var files;
-
             if(err) {
                 throw new Error('Could not create directory ' + opts.dest);
             }
-
-            files = fs.readdirSync(opts.dest);
-
-            _.each(files, function(file) {
-              var filepath = opts.dest + file;
-              if (fs.statSync(filepath).isFile()) {
-                fs.unlinkSync(filepath);
-              }
-            });
         });
     };
 
     this.suiteStarted = function(suite) {
+        if (_.isEmpty(suites)) {
+            var screenshotDirPath = opts.dest + suite.fullName;
+            var reportFilePath = screenshotDirPath + '_' + opts.filename;
+            if (isDirSync(screenshotDirPath)) {
+                rimraf.sync(screenshotDirPath);
+            }
+            if (isFileSync(reportFilePath)) {
+                fs.unlinkSync(reportFilePath);
+            }
+        }
         suite = getSuiteClone(suite);
         suite._suites = [];
         suite._specs = [];
@@ -202,6 +202,22 @@ function Jasmine2ScreenShotReporter(opts) {
         }
 
         runningSuite = suite;
+
+        function isDirSync(dir) {
+            try {
+                return fs.statSync(dir).isDirectory();
+            } catch (err) {
+                return false;
+            }
+        }
+
+        function isFileSync(file) {
+            try {
+                return fs.statSync(file).isFile();
+            } catch (err) {
+                return false;
+            }
+        }
     };
 
     this.suiteDone = function(suite) {
@@ -284,7 +300,7 @@ function Jasmine2ScreenShotReporter(opts) {
       });
 
       fs.appendFileSync(
-        opts.dest + opts.filename,
+        opts.dest + _.chain(suites).values().first().value().fullName + '_' + opts.filename,
         reportTemplate({ report: output}),
         { encoding: 'utf8' },
         function(err) {
