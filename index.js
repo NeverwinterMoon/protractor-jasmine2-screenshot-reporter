@@ -326,8 +326,8 @@ function Jasmine2ScreenShotReporter(opts) {
         mark:     marks[spec.status],
         name:     spec.fullName.replace(suiteName, '').trim(),
         reason:   printReasonsForFailure(spec),
-        filename: encodeURIComponent(spec.filename),
-        duration: getDuration(spec),
+        filename: decodeURI(spec.filename),
+        duration: getDuration(spec)
       });
     }
 
