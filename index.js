@@ -114,7 +114,7 @@ function Jasmine2ScreenShotReporter(opts) {
     };
 
     var pathBuilder = function(spec, suites, capabilities) {
-      return _.chain(suites).values().first().value().fullName + '/' + hat();
+      return _.chain(suites).values().first().value().fullName + path.sep + hat();
     };
 
     var metadataBuilder = function(spec, suites, capabilities) {
